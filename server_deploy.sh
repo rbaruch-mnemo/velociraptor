@@ -5,7 +5,7 @@ ayuda() {
   exit 1
 }
 
-USERNAME="velociraptor"
+USERNAME="forense"
 PASSWD="hola123.,"
 INTERFAZ=$(nmcli device status | grep "ethernet" | cut -d " " -f 1) # ens33 por defecto
 DIRECCION=""
@@ -52,8 +52,8 @@ done
 timedatectl set-timezone America/Mexico_City
 apt update && apt install -y vim whois
 SALTEDPASS=$(mkpasswd $PASSWD)
-useradd -m $USERNAME -p $SALTEDPASS -s /bin/bash
-echo "${USERNAME} ALL=(ALL:ALL) ALL" >> /etc/sudoers
+#useradd -m $USERNAME -p $SALTEDPASS -s /bin/bash
+#echo "${USERNAME} ALL=(ALL:ALL) ALL" >> /etc/sudoers
  
 # Instalacion  Velociraptor
 
