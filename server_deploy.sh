@@ -50,7 +50,7 @@ done
 
 # Configuracion inicial del servidor
 timedatectl set-timezone America/Mexico_City
-apt update && apt install -y vim whois
+apt update && apt install -y vim whois net-tools
 SALTEDPASS=$(mkpasswd $PASSWD)
 #useradd -m $USERNAME -p $SALTEDPASS -s /bin/bash
 #echo "${USERNAME} ALL=(ALL:ALL) ALL" >> /etc/sudoers
