@@ -1,12 +1,13 @@
 #!/bin/bash
 
 ayuda() {
-  echo -e "USO: $0 < -i INTERFAZ > [ -d IP ] [ -m MASCARA ] [ -g GATEWAY ]" 1>&2
+  echo -e "USO: $0 <-c NOMBRE_CASO> < -i INTERFAZ > [ -d IP ] [ -m MASCARA ] [ -g GATEWAY ]" 1>&2
   exit 1
 }
 
 USERNAME="forense"
 PASSWD="hola123.,"
+CASO="velociraptor_$(date +'%d-%m-%y')_$(date +'%T')"
 INTERFAZ=$(nmcli device status | grep "ethernet" | cut -d " " -f 1) # ens33 por defecto
 DIRECCION=""
 MASCARA=""
@@ -14,9 +15,11 @@ GATEWAY=""
 DNS="1.1.1.1, 8.8.8.8"
 
 # Flags
-while getopts ":i:d:m:g:" flag
+while getopts ":c:i:d:m:g:" flag
 do
     case "${flag}" in
+        c)
+            CASO=${OPTARG};;
         i) INTERFAZ=${OPTARG};;
         d) 
             DIRECCION=${OPTARG}
@@ -48,15 +51,15 @@ do
     esac
 done
 
-# Configuracion inicial del servidor
+# Configuracion inicial del servidor host
 timedatectl set-timezone America/Mexico_City
 apt update && apt install -y vim whois net-tools
-SALTEDPASS=$(mkpasswd $PASSWD)
+mkdir /home/$USERNAME/$CASO
+#SALTEDPASS=$(mkpasswd $PASSWD)
 #useradd -m $USERNAME -p $SALTEDPASS -s /bin/bash
 #echo "${USERNAME} ALL=(ALL:ALL) ALL" >> /etc/sudoers
  
-# Instalacion  Velociraptor
-
+# Descarga y setup inicial de velociraptor
 wget https://github.com/Velocidex/velociraptor/releases/download/v0.6.6-1/velociraptor-v0.6.6-1-linux-amd64 && wget https://github.com/Velocidex/velociraptor/releases/download/v0.6.6-1/velociraptor-v0.6.6-1-linux-amd64.sig
 #gpg --search-keys 0572F28B4EF19A043F4CBBE0B22A7FB19CB6CFA1
 cp client.config.yaml $(date +"%s")_client.config.yaml
@@ -64,6 +67,11 @@ sed -i 's/localhost/'"$DIRECCION"'/g' $(date +"%s")_client.config.yaml
 #sed -i 's/localhost/'"$DIRECCION"'/g' server.config.yaml
 mkdir /opt/velociraptor && mkdir /opt/velociraptor/logs
 chown -R $USERNAME /opt/velociraptor && chown -R $USERNAME /opt/velociraptor/logs
+
+# Creación de clientes 
+./velociraptor-v0.6.6-1-linux-amd64 --config client.config.yaml debian client # Debian
+./velociraptor-v0.6.6-1-linux-amd64 --config client.config.yaml rpm client
+#mv velociraptor_0.6.6-1_client.deb 
 
 # Configuracion de red
 echo -e "  ethernets:\n    $INTERFAZ:\n      dhcp4: no\n      addresses:\n        - $DIRECCION/$MASCARA\n      gateway4: $GATEWAY\n      nameservers:\n        addresses: [$DNS]" >> /etc/netplan/01-network-manager-all.yaml
