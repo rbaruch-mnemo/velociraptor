@@ -62,13 +62,17 @@ function Generar-ArchivosConfiguracion($DirectorioTrabajo, $IP, $Mascara, $Gatew
     (Get-Content "$DirectorioTrabajo\servidor\server.config.yaml").replace('{{IP}}', $IP) | Set-Content "$DirectorioTrabajo\servidor\server.config.yaml"
 
     # Clientes Windows
-    Write-Host "`t[+] Generando archivos de configuración para los clientes Windows..."
-    Copy-Item -Path ".\archivosBase\client.config.yaml" -Destination ".\bins\wix_orig\output" -Force | Out-Null
+    Write-Host "`t[+] Generando archivo MSI para los clientes Windows..."
+    Copy-Item -Path ".\archivosBase\client.config.yaml" -Destination ".\bins\wix_orig\output\client.config.yaml" -Force | Out-Null
     (Get-Content ".\bins\wix_orig\output\client.config.yaml").replace('{{servidor}}', $IP) | Set-Content ".\bins\wix_orig\output\client.config.yaml"
+    $current = $(pwd).Path
     "Iniciando BAT..."
-    Start-Process "cmd.exe" "/c .\bins\wix_orig\build_custom.bat"
-    #Move-Item -Path ".\bins\wix_orig\custom.msi" -Destination "$DirectorioTrabajo\clientesWindows" -Force
-    #Remove-Item -Path ".\bins\wix_orig\output\client.config.yaml"
+    Set-Location -LiteralPath ".\bins\wix_orig"
+    Start-Process -WindowStyle Hidden -Wait -Verb runAs cmd.exe -Args "/c build_custom.bat"
+    Start-Sleep -Seconds 10
+    Set-Location -LiteralPath $current
+    Move-Item -Path ".\bins\wix_orig\custom.msi" -Destination "$DirectorioTrabajo\clientesWindows\randomName.msi" -Force
+    Remove-Item -Path ".\bins\wix_orig\output\client.config.yaml"
     #msiexec /i custom.msi
 }
 
