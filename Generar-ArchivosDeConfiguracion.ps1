@@ -60,6 +60,14 @@ function Generar-ArchivosConfiguracion($DirectorioTrabajo, $IP, $Mascara, $Gatew
     Write-Host "`t[+] Generando archivos de configuración para el servidor..."
     Copy-Item -Path ".\archivosBase\server.config.yaml" -Destination "$DirectorioTrabajo\servidor" -Force | Out-Null
     (Get-Content "$DirectorioTrabajo\servidor\server.config.yaml").replace('{{IP}}', $IP) | Set-Content "$DirectorioTrabajo\servidor\server.config.yaml"
+    Copy-Item -Path ".\server_deploy.sh" -Destination "$DirectorioTrabajo\servidor" -Force | Out-Null
+    (Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{direccion}}', $IP) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
+    (Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{mascara}}', $Mascara) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
+    (Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{gateway}}', $Gateway) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
+    (Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{dns}}', $DNS) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
+    (Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{bind}}', $IP) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
+    Copy-Item -Path ".\bins\velociraptor-v0.6.6-1-linux-amd64" -Destination "$DirectorioTrabajo\servidor" -Force | Out-Null
+    "INSTRUCCIONES`n./velociraptor-v0.6.6-1-linux-amd64 --config server.config.yaml debian server --binary velociraptor-v0.6.6-1-linux-amd64`ndpkg -i velociraptor_v0.6.6-1_server.deb`n`nCorroborar el estado del servidor: systemctl status velociraptor_server" | Out-File -FilePath "$DirectorioTrabajo\servidor\instrucciones.txt"
 
     # Clientes Windows
     Write-Host "`t[+] Generando archivo MSI para los clientes Windows..."
@@ -83,6 +91,16 @@ $Gateway = Validar-IPv4($Gateway)
 $DNS = Validar-IPv4($DNS)
 if ($Mascara -NotMatch "^[0-9]{2}$") { Write-Host "[-] ERROR al validar la máscara ingresada.`nIngresar el número de octetos de la máscara. P.E: 24."; exit }
 #Start
+$Banner = @"
+ _    __     __           _                  __                ____             __                        ____  ______________     __  ____   __________  _______ 
+| |  / /__  / /___  _____(_)________ _____  / /_____  _____   / __ \___  ____  / /___  __  __            / __ \/ ____/  _/ __ \   /  |/  / | / / ____/  |/  / __ \
+| | / / _ \/ / __ \/ ___/ / ___/ __  `/ __ \/ __/ __ \/ ___/  / / / / _ \/ __ \/ / __ \/ / / /  ______   / / / / /_   / // /_/ /  / /|_/ /  |/ / __/ / /|_/ / / / /
+| |/ /  __/ / /_/ / /__/ / /  / /_/ / /_/ / /_/ /_/ / /     / /_/ /  __/ /_/ / / /_/ / /_/ /  /_____/  / /_/ / __/ _/ // _, _/  / /  / / /|  / /___/ /  / / /_/ / 
+|___/\___/_/\____/\___/_/_/   \__,_/ .___/\__/\____/_/     /_____/\___/ .___/_/\____/\__, /           /_____/_/   /___/_/ |_|  /_/  /_/_/ |_/_____/_/  /_/\____/  
+                                  /_/                                /_/            /____/                                                                        
+"@
+Write-Host ""
+Write-Host "$Banner"
 Verificar-Requisitos
 if (($DirectorioTrabajo -and $IP -and $Mascara -and $Gateway -and $DNS) -ne $null) {
     Write-Host "DT: $DirectorioTrabajo`nIP: $IP`nMASK: $Mascara`nGW: $Gateway`nDNS: $DNS`n"

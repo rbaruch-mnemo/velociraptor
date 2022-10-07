@@ -66,7 +66,7 @@ API:
   bind_scheme: tcp
   pinned_gw_name: GRPC_GW
 GUI:
-  bind_address: 0.0.0.0
+  bind_address: {{bind}}
   bind_port: 8889
   gw_certificate: |
     -----BEGIN CERTIFICATE-----
