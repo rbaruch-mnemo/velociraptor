@@ -65,8 +65,8 @@ function Verificar-Requisitos() {
 
 function Generar-ArchivosConfiguracion($DirectorioTrabajo, $IP, $Mascara, $Gateway, $DNS) {
     Write-Host "[+] Generando carpetas dentro de la ruta de trabajo..."
+    $current = $(pwd).Path
     "servidor","clientesWindows","clientesLinux" | % {mkdir $DirectorioTrabajo\$_} | Out-Null
-
     # Servidor Velociraptor
     Write-Host "[+] Generando archivos de configuración para el servidor..."
     Copy-Item -Path ".\archivosBase\server.config.yaml" -Destination "$DirectorioTrabajo\servidor" -Force | Out-Null
@@ -77,6 +77,9 @@ function Generar-ArchivosConfiguracion($DirectorioTrabajo, $IP, $Mascara, $Gatew
     (Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{mascara}}', $Mascara) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
     (Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{gateway}}', $Gateway) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
     (Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{dns}}', $DNS) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
+    Set-Location -LiteralPath "$DirectorioTrabajo\servidor"
+    bash -c "dos2unix server_deploy.sh"
+    Set-Location -LiteralPath $current
     Copy-Item -Path ".\bins\velociraptor-v0.6.6-1-linux-amd64" -Destination "$DirectorioTrabajo\servidor" -Force | Out-Null
     "INSTRUCCIONES`n`n./velociraptor-v0.6.6-1-linux-amd64 --config server.config.yaml debian server --binary velociraptor-v0.6.6-1-linux-amd64`ndpkg -i velociraptor_v0.6.6-1_server.deb`n`nCorroborar el estado del servidor:`n systemctl status velociraptor_server" | Out-File -FilePath "$DirectorioTrabajo\servidor\instrucciones.txt"
 
@@ -84,12 +87,11 @@ function Generar-ArchivosConfiguracion($DirectorioTrabajo, $IP, $Mascara, $Gatew
     Write-Host "[+] Generando archivo MSI para los clientes Windows..."
     Copy-Item -Path ".\archivosBase\client.config.yaml" -Destination ".\bins\wix_orig\output\client.config.yaml" -Force | Out-Null
     (Get-Content ".\bins\wix_orig\output\client.config.yaml").replace('{{servidor}}', $IP) | Set-Content ".\bins\wix_orig\output\client.config.yaml"
-    $current = $(pwd).Path
     Set-Location -LiteralPath ".\bins\wix_orig"
     Start-Process -WindowStyle Hidden -Wait -Verb runAs cmd.exe -Args "/c build_custom.bat"
     Start-Sleep -Seconds 10
     Set-Location -LiteralPath $current
-    Move-Item -Path ".\bins\wix_orig\custom.msi" -Destination "$DirectorioTrabajo\clientesWindows\randomName.msi" -Force
+    Move-Item -Path ".\bins\wix_orig\custom.msi" -Destination "$DirectorioTrabajo\clientesWindows\custom.msi" -Force
     #msiexec /i custom.msi
 
     # Clientes Linux
