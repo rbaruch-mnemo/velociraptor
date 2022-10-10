@@ -58,6 +58,7 @@ function Verificar-Requisitos() {
         wsl --install
         Write-Host -Fore Green "Listo!"
         Write-Host -Fore Yellow "Es necesario reinicar el equipo, reiniciando en 20 segundos..."
+        Start-Sleep -Seconds 20
         Restart-Computer
     } else { Write-Host "`t[*] Ya se encuentra instalado WSL."}
 }
@@ -70,14 +71,14 @@ function Generar-ArchivosConfiguracion($DirectorioTrabajo, $IP, $Mascara, $Gatew
     Write-Host "[+] Generando archivos de configuración para el servidor..."
     Copy-Item -Path ".\archivosBase\server.config.yaml" -Destination "$DirectorioTrabajo\servidor" -Force | Out-Null
     (Get-Content "$DirectorioTrabajo\servidor\server.config.yaml").replace('{{IP}}', $IP) | Set-Content "$DirectorioTrabajo\servidor\server.config.yaml"
+    (Get-Content "$DirectorioTrabajo\servidor\server.config.yaml").replace('{{bind}}', $IP) | Set-Content "$DirectorioTrabajo\servidor\server.config.yaml"
     Copy-Item -Path ".\server_deploy.sh" -Destination "$DirectorioTrabajo\servidor" -Force | Out-Null
     (Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{direccion}}', $IP) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
     (Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{mascara}}', $Mascara) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
     (Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{gateway}}', $Gateway) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
     (Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{dns}}', $DNS) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
-    (Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{bind}}', $IP) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
     Copy-Item -Path ".\bins\velociraptor-v0.6.6-1-linux-amd64" -Destination "$DirectorioTrabajo\servidor" -Force | Out-Null
-    "INSTRUCCIONES`n./velociraptor-v0.6.6-1-linux-amd64 --config server.config.yaml debian server --binary velociraptor-v0.6.6-1-linux-amd64`ndpkg -i velociraptor_v0.6.6-1_server.deb`n`nCorroborar el estado del servidor: systemctl status velociraptor_server" | Out-File -FilePath "$DirectorioTrabajo\servidor\instrucciones.txt"
+    "INSTRUCCIONES`n`n./velociraptor-v0.6.6-1-linux-amd64 --config server.config.yaml debian server --binary velociraptor-v0.6.6-1-linux-amd64`ndpkg -i velociraptor_v0.6.6-1_server.deb`n`nCorroborar el estado del servidor:`n systemctl status velociraptor_server" | Out-File -FilePath "$DirectorioTrabajo\servidor\instrucciones.txt"
 
     # Clientes Windows
     Write-Host "[+] Generando archivo MSI para los clientes Windows..."
