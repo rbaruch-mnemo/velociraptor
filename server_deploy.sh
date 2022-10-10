@@ -15,8 +15,8 @@ mkdir /opt/velociraptor && mkdir /opt/velociraptor/logs
 chown -R $USERNAME /opt/velociraptor && chown -R $USERNAME /opt/velociraptor/logs
 
 # Creación de clientes 
-./velociraptor-v0.6.6-1-linux-amd64 --config client.config.yaml debian client # Debian
-./velociraptor-v0.6.6-1-linux-amd64 --config client.config.yaml rpm client
+#./velociraptor-v0.6.6-1-linux-amd64 --config client.config.yaml debian client # Debian
+#./velociraptor-v0.6.6-1-linux-amd64 --config client.config.yaml rpm client # CentOS - RHEL
 #mv velociraptor_0.6.6-1_client.deb 
 
 # Configuracion de red

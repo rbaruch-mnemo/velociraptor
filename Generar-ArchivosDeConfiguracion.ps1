@@ -39,17 +39,27 @@ function Validar-RutaTrabajo {
 
 function Verificar-Requisitos() {
     Write-Host "[+] Verificando requisitos de Velociraptor..."
+    # .NET 3.5+
     if ((Get-WindowsCapability -Online -Name NetFx3~~~~).State -ne "Installed") {
         Write-Host -NoNewLine "`t[*] Instalando .NET 3.5.1..."
         DISM /online /Enable-Feature /FeatureName:"NetFx3" | Out-Null
         Enable-WindowsOptionalFeature -Online -FeatureName "NetFx3" | Out-Null
         Write-Host -Fore Green "Listo!"
     } else { Write-Host "`t[*] Ya se encuentra instalado .NET 3.5.1." }
+    # Wix Tool Set
     if (-not (Test-Path -Path "C:\Program Files (x86)\WiX Toolset v3.11)")) {
         Write-Host -NoNewLine "`t[*] Instalando utilierias de WIX para crear clientes..."
         Start-Process -Wait -FilePath ".\bins\wix311.exe" -ArgumentList "/S" -PassThru | Out-Null
         Write-Host -Fore Green "Listo!"
     } else { Write-Host "`t[*] Ya se encuentran instaladas las utilerías de WIX." }
+    # WSL
+    if ((Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux).State -eq "Disabled") {
+        Write-Host -NoNewLine "`t[*] Instalando WSL dentro del equipo..."
+        wsl --install
+        Write-Host -Fore Green "Listo!"
+        Write-Host -Fore Yellow "Es necesario reinicar el equipo, reiniciando en 20 segundos..."
+        Restart-Computer
+    } else { Write-Host "`t[*] Ya se encuentra instalado WSL."}
 }
 
 function Generar-ArchivosConfiguracion($DirectorioTrabajo, $IP, $Mascara, $Gateway, $DNS) {
@@ -57,7 +67,7 @@ function Generar-ArchivosConfiguracion($DirectorioTrabajo, $IP, $Mascara, $Gatew
     "servidor","clientesWindows","clientesLinux" | % {mkdir $DirectorioTrabajo\$_} | Out-Null
 
     # Servidor Velociraptor
-    Write-Host "`t[+] Generando archivos de configuración para el servidor..."
+    Write-Host "[+] Generando archivos de configuración para el servidor..."
     Copy-Item -Path ".\archivosBase\server.config.yaml" -Destination "$DirectorioTrabajo\servidor" -Force | Out-Null
     (Get-Content "$DirectorioTrabajo\servidor\server.config.yaml").replace('{{IP}}', $IP) | Set-Content "$DirectorioTrabajo\servidor\server.config.yaml"
     Copy-Item -Path ".\server_deploy.sh" -Destination "$DirectorioTrabajo\servidor" -Force | Out-Null
@@ -70,18 +80,31 @@ function Generar-ArchivosConfiguracion($DirectorioTrabajo, $IP, $Mascara, $Gatew
     "INSTRUCCIONES`n./velociraptor-v0.6.6-1-linux-amd64 --config server.config.yaml debian server --binary velociraptor-v0.6.6-1-linux-amd64`ndpkg -i velociraptor_v0.6.6-1_server.deb`n`nCorroborar el estado del servidor: systemctl status velociraptor_server" | Out-File -FilePath "$DirectorioTrabajo\servidor\instrucciones.txt"
 
     # Clientes Windows
-    Write-Host "`t[+] Generando archivo MSI para los clientes Windows..."
+    Write-Host "[+] Generando archivo MSI para los clientes Windows..."
     Copy-Item -Path ".\archivosBase\client.config.yaml" -Destination ".\bins\wix_orig\output\client.config.yaml" -Force | Out-Null
     (Get-Content ".\bins\wix_orig\output\client.config.yaml").replace('{{servidor}}', $IP) | Set-Content ".\bins\wix_orig\output\client.config.yaml"
     $current = $(pwd).Path
-    "Iniciando BAT..."
     Set-Location -LiteralPath ".\bins\wix_orig"
     Start-Process -WindowStyle Hidden -Wait -Verb runAs cmd.exe -Args "/c build_custom.bat"
     Start-Sleep -Seconds 10
     Set-Location -LiteralPath $current
     Move-Item -Path ".\bins\wix_orig\custom.msi" -Destination "$DirectorioTrabajo\clientesWindows\randomName.msi" -Force
-    Remove-Item -Path ".\bins\wix_orig\output\client.config.yaml"
     #msiexec /i custom.msi
+
+    # Clientes Linux
+     Write-Host "[+] Generando ejecutables para clientes Linux..."
+     Move-Item -Path ".\bins\wix_orig\output\client.config.yaml" -Destination ".\bins" -Force
+     #$pwdLinux= bash -c "pwd"
+     #Write-Host $pwdLinux
+     #exit
+     Set-Location -LiteralPath ".\bins"
+     bash -c "./velociraptor-v0.6.6-1-linux-amd64 --config client.config.yaml debian client"
+     bash -c "./velociraptor-v0.6.6-1-linux-amd64 --config client.config.yaml rpm client"
+     Set-Location -LiteralPath $current
+     Remove-Item -Path ".\bins\client.config.yaml"
+     Move-Item -Path ".\bins\*client*" -Destination "$DirectorioTrabajo\clientesLinux" -Force
+     #dpkg -i client.deb
+     #rpm -i client.rpm
 }
 
 # Validaciones de valores ingresados
@@ -103,7 +126,7 @@ Write-Host ""
 Write-Host "$Banner"
 Verificar-Requisitos
 if (($DirectorioTrabajo -and $IP -and $Mascara -and $Gateway -and $DNS) -ne $null) {
-    Write-Host "DT: $DirectorioTrabajo`nIP: $IP`nMASK: $Mascara`nGW: $Gateway`nDNS: $DNS`n"
+    #Write-Host "DT: $DirectorioTrabajo`nIP: $IP`nMASK: $Mascara`nGW: $Gateway`nDNS: $DNS`n"
     Generar-ArchivosConfiguracion -DirectorioTrabajo $DirectorioTrabajo -IP $IP -Mascara $Mascara -Gateway $Gateway -DNS $DNS 
 } else {
     Write-Host "[-] ERROR: Ingrese valores para IP, Mascara, Gateway y DNS."; exit
