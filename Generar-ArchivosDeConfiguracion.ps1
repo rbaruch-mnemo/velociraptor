@@ -81,6 +81,7 @@ function Generar-ArchivosConfiguracion($DirectorioTrabajo, $IP, $Mascara, $Gatew
     Copy-Item -Path ".\*.deb" -Destination "$DirectorioTrabajo\servidor" -Force | Out-Null
     # Se crea .sh para config de red  
     Write-Host "`t[*] Generando .sh de config para el servidor..."
+    Set-Location -LiteralPath $current
     Copy-Item -Path ".\server_deploy.sh" -Destination "$DirectorioTrabajo\servidor" -Force | Out-Null
     (Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{direccion}}', $IP) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
     (Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{mascara}}', $Mascara) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
