@@ -76,7 +76,7 @@ function Generar-ArchivosConfiguracion($DirectorioTrabajo, $IP, $Mascara, $Gatew
     # Se crea .deb 
     Write-Host "`t[*] Generando archivo .deb para deploy..."
     Set-Location -LiteralPath ".\bins"
-    bash -c "./velociraptor-v0.6.6-1-linux-amd64 --config server.config.yaml debian server --binary velociraptor-v0.6.6-1-linux-amd64"
+    bash -c "./velociraptor-v0.6.5-linux-amd64 --config server.config.yaml debian server --binary velociraptor-v0.6.5-linux-amd64"
     Start-Sleep -Seconds 15
     Copy-Item -Path ".\*.deb" -Destination "$DirectorioTrabajo\servidor" -Force | Out-Null
     # Se crea .sh para config de red  
@@ -100,15 +100,15 @@ function Generar-ArchivosConfiguracion($DirectorioTrabajo, $IP, $Mascara, $Gatew
     Start-Process -WindowStyle Hidden -Wait -Verb runAs cmd.exe -Args "/c build_custom.bat"
     Start-Sleep -Seconds 10
     Set-Location -LiteralPath $current
-    Move-Item -Path ".\bins\wix_orig\custom.msi" -Destination "$DirectorioTrabajo\clientesWindows\custom.msi" -Force
+    Move-Item -Path ".\bins\wix_orig\custom.msi" -Destination "$DirectorioTrabajo\clientesWindows\Instalador.msi" -Force
     #msiexec /i custom.msi
 
     ## Clientes Linux
      Write-Host "[+] Generando ejecutables para clientes Linux..."
      Move-Item -Path ".\bins\wix_orig\output\client.config.yaml" -Destination ".\bins" -Force
      Set-Location -LiteralPath ".\bins"
-     bash -c "./velociraptor-v0.6.6-1-linux-amd64 --config client.config.yaml debian client"
-     bash -c "./velociraptor-v0.6.6-1-linux-amd64 --config client.config.yaml rpm client"
+     bash -c "./velociraptor-v0.6.5-linux-amd64 --config client.config.yaml debian client"
+     bash -c "./velociraptor-v0.6.5-linux-amd64 --config client.config.yaml rpm client"
      Set-Location -LiteralPath $current
      #Remove-Item -Path ".\bins\client.config.yaml"
      Move-Item -Path ".\bins\*client*" -Destination "$DirectorioTrabajo\clientesLinux" -Force

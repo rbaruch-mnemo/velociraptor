@@ -1,35 +1,34 @@
 version:
   name: velociraptor
-  version: 0.6.6-1
-  commit: 41da5ef
-  build_time: "2022-09-09T11:38:49Z"
-  ci_build_url: https://github.com/Velocidex/velociraptor/actions/runs/3022106649
-  compiler: go1.18.4
+  version: 0.6.5
+  commit: 5772dc32
+  build_time: "2022-06-22T16:57:27+10:00"
+  compiler: go1.18.1
 Client:
   server_urls:
   - https://{{servidor}}:8000/
   ca_certificate: |
     -----BEGIN CERTIFICATE-----
-    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
+    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
     -----END CERTIFICATE-----
-  nonce: EJHCPuXti0o=
+  nonce: d1Lq5a/qjZ4=
   writeback_darwin: /etc/velociraptor.writeback.yaml
   writeback_linux: /etc/velociraptor.writeback.yaml
   writeback_windows: $ProgramFiles\Velociraptor\velociraptor.writeback.yaml
@@ -45,11 +44,10 @@ Client:
     install_path: /usr/local/sbin/velociraptor
   version:
     name: velociraptor
-    version: 0.6.6-1
-    commit: 41da5ef
-    build_time: "2022-09-09T11:38:49Z"
-    ci_build_url: https://github.com/Velocidex/velociraptor/actions/runs/3022106649
-    compiler: go1.18.4
+    version: 0.6.5
+    commit: 5772dc32
+    build_time: "2022-06-22T16:57:27+10:00"
+    compiler: go1.18.1
   use_self_signed_ssl: true
   pinned_server_name: VelociraptorServer
   max_upload_size: 5242880
