@@ -47,7 +47,7 @@ function Verificar-Requisitos() {
         Write-Host -Fore Green "Listo!"
     } else { Write-Host "`t[*] Ya se encuentra instalado .NET 3.5.1." }
     # Wix Tool Set
-    if (-not (Test-Path -Path "C:\Program Files (x86)\WiX Toolset v3.11)")) {
+    if (-not (Test-Path -Path "C:\Program Files (x86)\WiX Toolset v3.11")) {
         Write-Host -NoNewLine "`t[*] Instalando utilierias de WIX para crear clientes..."
         Start-Process -Wait -FilePath ".\bins\wix311.exe" -ArgumentList "/S" -PassThru | Out-Null
         Write-Host -Fore Green "Listo!"
@@ -73,7 +73,7 @@ function Generar-ArchivosConfiguracion($DirectorioTrabajo, $IP, $Mascara, $Gatew
     Copy-Item -Path ".\archivosBase\server.config.yaml" -Destination ".\bins" -Force | Out-Null
     (Get-Content ".\bins\server.config.yaml").replace('{{IP}}', $IP) | Set-Content ".\bins\server.config.yaml"
     (Get-Content ".\bins\server.config.yaml").replace('{{bind}}', $IP) | Set-Content ".\bins\server.config.yaml"
-    # Se crea .deb 
+    # Se crea .deb para instalacion 
     Write-Host "`t[*] Generando archivo .deb para deploy..."
     Set-Location -LiteralPath ".\bins"
     bash -c "./velociraptor-v0.6.5-linux-amd64 --config server.config.yaml debian server --binary velociraptor-v0.6.5-linux-amd64"
@@ -88,11 +88,10 @@ function Generar-ArchivosConfiguracion($DirectorioTrabajo, $IP, $Mascara, $Gatew
     (Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{gateway}}', $Gateway) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
     (Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{dns}}', $DNS) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
     Set-Location -LiteralPath "$DirectorioTrabajo\servidor"
-    bash -c "dos2unix server_deploy.sh"
+    bash -c "dos2unix server_deploy.sh" | Out-Null
     Set-Location -LiteralPath $current
-    "dpkg -i velociraptor_v0.6.6-1_server.deb`nCorroborar el estado del servidor:`n systemctl status velociraptor_server" | Out-File -FilePath "$DirectorioTrabajo\servidor\instrucciones.txt"
-
-    ## Clientes Windows
+    "dpkg -i velociraptor_v0.6.5_server.deb`nCorroborar el estado del servidor:`n systemctl status velociraptor_server" | Out-File -FilePath "$DirectorioTrabajo\servidor\instrucciones.txt"
+    ## CLIENTES WINDOWS
     Write-Host "[+] Generando archivo MSI para los clientes Windows..."
     Copy-Item -Path ".\archivosBase\client.config.yaml" -Destination ".\bins\wix_orig\output\client.config.yaml" -Force | Out-Null
     (Get-Content ".\bins\wix_orig\output\client.config.yaml").replace('{{servidor}}', $IP) | Set-Content ".\bins\wix_orig\output\client.config.yaml"
@@ -100,17 +99,16 @@ function Generar-ArchivosConfiguracion($DirectorioTrabajo, $IP, $Mascara, $Gatew
     Start-Process -WindowStyle Hidden -Wait -Verb runAs cmd.exe -Args "/c build_custom.bat"
     Start-Sleep -Seconds 10
     Set-Location -LiteralPath $current
-    Move-Item -Path ".\bins\wix_orig\custom.msi" -Destination "$DirectorioTrabajo\clientesWindows\Instalador.msi" -Force
+    Move-Item -Path ".\bins\wix_orig\custom.msi" -Destination "$DirectorioTrabajo\clientesWindows\InstaladorWindows.msi" -Force
     #msiexec /i custom.msi
-
     ## Clientes Linux
      Write-Host "[+] Generando ejecutables para clientes Linux..."
      Move-Item -Path ".\bins\wix_orig\output\client.config.yaml" -Destination ".\bins" -Force
      Set-Location -LiteralPath ".\bins"
-     bash -c "./velociraptor-v0.6.5-linux-amd64 --config client.config.yaml debian client"
-     bash -c "./velociraptor-v0.6.5-linux-amd64 --config client.config.yaml rpm client"
+     bash -c "./velociraptor-v0.6.5-linux-amd64 --config client.config.yaml debian client" | Out-Null
+     bash -c "./velociraptor-v0.6.5-linux-amd64 --config client.config.yaml rpm client" | Out-Null
      Set-Location -LiteralPath $current
-     #Remove-Item -Path ".\bins\client.config.yaml"
+     Remove-Item -Path ".\bins\client.config.yaml"
      Move-Item -Path ".\bins\*client*" -Destination "$DirectorioTrabajo\clientesLinux" -Force
      #dpkg -i client.deb
      #rpm -i client.rpm
