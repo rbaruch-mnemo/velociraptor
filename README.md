@@ -1,3 +1,4 @@
+# Requisitos xd
 # Velociraptor - Creador de archivos de despliegue
 Herramienta  que permite crear de manera desatendida los archivos necesarios para levantar un laboratorio de Velociraptor:
 - **Servidor**: Archivos .sh y .deb para configuración de red e instalación de paquetes dentro del servidor 
