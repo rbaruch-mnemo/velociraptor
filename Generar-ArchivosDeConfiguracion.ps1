@@ -76,7 +76,7 @@ function Generar-ArchivosConfiguracion($DirectorioTrabajo, $IP, $Mascara, $Gatew
     # Se crea .deb para instalacion 
     Write-Host "`t[*] Generando archivo .deb para deploy..."
     Set-Location -LiteralPath ".\bins"
-    bash -c "./velociraptor-v0.6.5-linux-amd64 --config server.config.yaml debian server --binary velociraptor-v0.6.5-linux-amd64"
+    bash -c "./velociraptor-v0.7.0-2-linux-amd64 --config server.config.yaml debian server --binary velociraptor-v0.7.0-2-linux-amd64"
     Start-Sleep -Seconds 15
     Copy-Item -Path ".\*.deb" -Destination "$DirectorioTrabajo\servidor" -Force | Out-Null
     # Se crea .sh para config de red  
@@ -105,8 +105,8 @@ function Generar-ArchivosConfiguracion($DirectorioTrabajo, $IP, $Mascara, $Gatew
      Write-Host "[+] Generando ejecutables para clientes Linux..."
      Move-Item -Path ".\bins\wix_orig\output\client.config.yaml" -Destination ".\bins" -Force
      Set-Location -LiteralPath ".\bins"
-     bash -c "./velociraptor-v0.6.5-linux-amd64 --config client.config.yaml debian client" | Out-Null
-     bash -c "./velociraptor-v0.6.5-linux-amd64 --config client.config.yaml rpm client" | Out-Null
+     bash -c "./velociraptor-v0.7.0-2-linux-amd64 --config client.config.yaml debian client" | Out-Null
+     bash -c "./velociraptor-v0.7.0-2-linux-amd64 --config client.config.yaml rpm client" | Out-Null
      Set-Location -LiteralPath $current
      Remove-Item -Path ".\bins\client.config.yaml"
      Move-Item -Path ".\bins\*client*" -Destination "$DirectorioTrabajo\clientesLinux" -Force
