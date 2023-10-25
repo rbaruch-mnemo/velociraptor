@@ -8,7 +8,7 @@ version:
   compiler: go1.21.0
 Client:
   server_urls:
-  - https://192.168.92.134:8000/
+  - https://{{servidor}}:8000/
   ca_certificate: |
     -----BEGIN CERTIFICATE-----
     MIIDTDCCAjSgAwIBAgIRAMSPDqDHmGBL2XLzc4taVPAwDQYJKoZIhvcNAQELBQAw

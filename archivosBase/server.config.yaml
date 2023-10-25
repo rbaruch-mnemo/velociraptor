@@ -8,7 +8,7 @@ version:
   compiler: go1.21.0
 Client:
   server_urls:
-  - https://192.168.92.134:8000/
+  - https://{{IP}}:8000/
   ca_certificate: |
     -----BEGIN CERTIFICATE-----
     MIIDTDCCAjSgAwIBAgIRAMSPDqDHmGBL2XLzc4taVPAwDQYJKoZIhvcNAQELBQAw
@@ -68,7 +68,7 @@ API:
   bind_scheme: tcp
   pinned_gw_name: GRPC_GW
 GUI:
-  bind_address: 127.0.0.1
+  bind_address: {{bind}}
   bind_port: 8889
   gw_certificate: |
     -----BEGIN CERTIFICATE-----
