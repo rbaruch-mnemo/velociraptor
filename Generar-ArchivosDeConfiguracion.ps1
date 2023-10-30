@@ -1,9 +1,9 @@
 Param(
     [Parameter(Mandatory=$true, HelpMessage="Ingresa la ruta de salida donde se colocarán los archivos de configuración para el servidor y los clientes. Puedes colocar '.' para ocupar el directorio actual como ruta de salida.")] [string] $DirectorioTrabajo,
-    [Parameter(Mandatory=$true, HelpMessage="Ingresa la IP que tendrá el servidor Velociraptor")] [string] $IP,
-    [Parameter(Mandatory=$true, HelpMessage="Ingresa la máscara (8,16,24,26,etc) para la IP asignada")] [string] $Mascara,
-    [Parameter(Mandatory=$true, HelpMessage="Ingresa la dirección IP del gateway para la configuración de red del servidor")] [string] $Gateway,
-    [Parameter(Mandatory=$true, HelpMessage="Ingresa el/los servidores  DNS para la configuración de red`nPE: '8.8.8.8,1.1.1.1'")] [string] $DNS
+    [Parameter(Mandatory=$true, HelpMessage="Ingresa la IP que tendrá el servidor Velociraptor")] [string] $IP
+    #[Parameter(Mandatory=$true, HelpMessage="Ingresa la máscara (8,16,24,26,etc) para la IP asignada")] [string] $Mascara,
+    #[Parameter(Mandatory=$true, HelpMessage="Ingresa la dirección IP del gateway para la configuración de red del servidor")] [string] $Gateway,
+    #[Parameter(Mandatory=$true, HelpMessage="Ingresa el/los servidores  DNS para la configuración de red`nPE: '8.8.8.8,1.1.1.1'")] [string] $DNS
 )
 
 function Validar-IPv4 { 
@@ -63,64 +63,78 @@ function Verificar-Requisitos() {
     } else { Write-Host "`t[*] Ya se encuentra instalado WSL."}
 }
 
-function Generar-ArchivosConfiguracion($DirectorioTrabajo, $IP, $Mascara, $Gateway, $DNS) {
+function Generar-ArchivosConfiguracion($DirectorioTrabajo, $IP) {
+    $IP_Printeable = $IP.Replace(".","_")
     Write-Host "[+] Generando carpetas dentro de la ruta de trabajo..."
-    $current = $(pwd).Path
-    "servidor","clientesWindows","clientesLinux" | % {mkdir $DirectorioTrabajo\$_} | Out-Null
+    $current = $(Get-Location).Path # Se obtiene la ruta de donde se está ejecutando el script
+    "servidor","clientesWindows","clientesLinux" | ForEach-Object {mkdir $DirectorioTrabajo\$_} | Out-Null # Se crean las carpetas de salida dentro del DirectorioTrajo
+    
     ## SERVIDOR 
-    # YAML 
-    Write-Host "[+] Generando archivo YAML de configuración para el servidor..."
-    Copy-Item -Path ".\archivosBase\server.config.yaml" -Destination ".\bins" -Force | Out-Null
-    (Get-Content ".\bins\server.config.yaml").replace('{{IP}}', $IP) | Set-Content ".\bins\server.config.yaml"
-    (Get-Content ".\bins\server.config.yaml").replace('{{bind}}', $IP) | Set-Content ".\bins\server.config.yaml"
-    # Se crea .deb para instalacion 
-    Write-Host "`t[*] Generando archivo .deb para deploy..."
-    Set-Location -LiteralPath ".\bins"
+    Write-Host "[+] SERVIDOR: Generando archivo DEB..."
+    Copy-Item -Path "$current\archivosBase\server.config.yaml" -Destination "$current\bins" -Force | Out-Null
+    (Get-Content "$current\bins\server.config.yaml").replace('{{IP}}', $IP) | Set-Content "$current\bins\server.config.yaml"
+    (Get-Content "$current\bins\server.config.yaml").replace('{{bind}}', $IP) | Set-Content "$current\bins\server.config.yaml"
+    Set-Location -LiteralPath "$current\bins"
     bash -c "./velociraptor-v0.7.0-2-linux-amd64 --config server.config.yaml debian server --binary velociraptor-v0.7.0-2-linux-amd64"
     Start-Sleep -Seconds 15
-    Copy-Item -Path ".\*.deb" -Destination "$DirectorioTrabajo\servidor" -Force | Out-Null
+    Move-Item -Path "velociraptor_server_0.7.0.2_amd64.deb" -Destination "$DirectorioTrabajo\servidor\servidor_velociraptor-v0.7.0-2-linux_$IP_Printeable.deb" -Force | Out-Null
+    Set-Location $current
     # Se crea .sh para config de red  
-    Write-Host "`t[*] Generando .sh de config para el servidor..."
-    Set-Location -LiteralPath $current
-    Copy-Item -Path ".\server_deploy.sh" -Destination "$DirectorioTrabajo\servidor" -Force | Out-Null
-    (Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{direccion}}', $IP) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
-    (Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{mascara}}', $Mascara) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
-    (Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{gateway}}', $Gateway) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
-    (Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{dns}}', $DNS) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
-    Set-Location -LiteralPath "$DirectorioTrabajo\servidor"
-    bash -c "dos2unix server_deploy.sh" | Out-Null
-    Set-Location -LiteralPath $current
-    "dpkg -i velociraptor_v0.6.5_server.deb`nCorroborar el estado del servidor:`n systemctl status velociraptor_server" | Out-File -FilePath "$DirectorioTrabajo\servidor\instrucciones.txt"
+    #Write-Host "`t[*] Generando .sh de config para el servidor..."
+    #Set-Location -LiteralPath $current
+    #Copy-Item -Path ".\server_deploy.sh" -Destination "$DirectorioTrabajo\servidor" -Force | Out-Null
+    #(Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{direccion}}', $IP) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
+    #(Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{mascara}}', $Mascara) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
+    #(Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{gateway}}', $Gateway) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
+    #(Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{dns}}', $DNS) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
+    #Set-Location -LiteralPath "$DirectorioTrabajo\servidor"
+    #bash -c "dos2unix server_deploy.sh" | Out-Null
+    #Set-Location -LiteralPath $current
+    #"dpkg -i velociraptor_v0.6.5_server.deb`nCorroborar el estado del servidor:`n systemctl status velociraptor_server" | Out-File -FilePath "$DirectorioTrabajo\servidor\instrucciones.txt"
+    
     ## CLIENTES WINDOWS
-    Write-Host "[+] Generando archivo MSI para los clientes Windows..."
-    Copy-Item -Path ".\archivosBase\client.config.yaml" -Destination ".\bins\wix_orig\output\client.config.yaml" -Force | Out-Null
-    (Get-Content ".\bins\wix_orig\output\client.config.yaml").replace('{{servidor}}', $IP) | Set-Content ".\bins\wix_orig\output\client.config.yaml"
-    Set-Location -LiteralPath ".\bins\wix_orig"
-    Start-Process -WindowStyle Hidden -Wait -Verb runAs cmd.exe -Args "/c build_custom.bat"
+    Write-Host "[+] WINDOWS: Generando archivo MSI para los clientes..."
+    #Copy-Item -Path ".\archivosBase\client.config.yaml" -Destination ".\bins\wix_orig\output\client.config.yaml" -Force | Out-Null
+    Copy-Item -Path "$current\archivosBase\client.config.yaml" -Destination "$current\bins" -Force | Out-Null
+    
+    (Get-Content "$current\bins\client.config.yaml").replace('{{servidor}}', $IP) | Set-Content "$current\bins\client.config.yaml"
+    Set-Location "$current\bins"
+    bash -c "./velociraptor-v0.7.0-2-linux-amd64 config repack --msi velociraptor-v0.7.0-2-windows-amd64.msi client.config.yaml MNEMO_VelociraptorClient.msi" | Out-Null
+    #Set-Location -LiteralPath ".\bins\wix_orig"
+    #Start-Process -WindowStyle Hidden -Wait -Verb runAs cmd.exe -Args "/c build_custom.bat"
     Start-Sleep -Seconds 10
-    Set-Location -LiteralPath $current
-    Move-Item -Path ".\bins\wix_orig\custom.msi" -Destination "$DirectorioTrabajo\clientesWindows\InstaladorWindows.msi" -Force
+    #Set-Location -LiteralPath $current
+    Move-Item -Path "MNEMO_VelociraptorClient.msi" -Destination "$DirectorioTrabajo\clientesWindows\MNEMO_VelociraptorClient_$IP_Printeable.msi" -Force
+    #Set-Location $current
     #msiexec /i custom.msi
+    
     ## Clientes Linux
-     Write-Host "[+] Generando ejecutables para clientes Linux..."
-     Move-Item -Path ".\bins\wix_orig\output\client.config.yaml" -Destination ".\bins" -Force
-     Set-Location -LiteralPath ".\bins"
-     bash -c "./velociraptor-v0.7.0-2-linux-amd64 --config client.config.yaml debian client" | Out-Null
-     bash -c "./velociraptor-v0.7.0-2-linux-amd64 --config client.config.yaml rpm client" | Out-Null
-     Set-Location -LiteralPath $current
-     Remove-Item -Path ".\bins\client.config.yaml"
-     Move-Item -Path ".\bins\*client*" -Destination "$DirectorioTrabajo\clientesLinux" -Force
-     #dpkg -i client.deb
-     #rpm -i client.rpm
+    Write-Host "[+] LINUX:  Generando binarios para clientes..."
+    #Move-Item -Path ".\bins\wix_orig\output\client.config.yaml" -Destination ".\bins" -Force
+    #Set-Location -LiteralPath ".\bins"
+    bash -c "./velociraptor-v0.7.0-2-linux-amd64 --config client.config.yaml debian client" | Out-Null
+    bash -c "./velociraptor-v0.7.0-2-linux-amd64 --config client.config.yaml rpm client" | Out-Null
+    Remove-Item -Path "$current\bins\client.config.yaml"
+    Remove-Item -Path "$current\bins\server.config.yaml"
+    Move-Item -Path "*client*" -Destination "$DirectorioTrabajo\clientesLinux" -Force
+    
+
+    ## Limpiando archivos creados en carpeta 'bins'
+    Set-Location -LiteralPath $current
+   
+    
+    Write-Host -ForegroundColor Green "[+] Binarios creados.`nRevisa los archivos creados dentro de $DirectorioTrabajo"
+    #dpkg -i client.deb
+    #rpm -i client.rpm
 }
 
 # Validaciones de valores ingresados
 $DirectorioTrabajo = Validar-RutaTrabajo($DirectorioTrabajo)
 $IP = Validar-IPv4($IP)
-$Gateway = Validar-IPv4($Gateway)
-$DNS = Validar-IPv4($DNS)
-if ($Mascara -NotMatch "^[0-9]{2}$") { Write-Host "[-] ERROR al validar la máscara ingresada.`nIngresar el número de octetos de la máscara. P.E: 24."; exit }
-#Start
+#$Gateway = Validar-IPv4($Gateway)
+#$DNS = Validar-IPv4($DNS)
+#if ($Mascara -NotMatch "^[0-9]{2}$") { Write-Host "[-] ERROR al validar la máscara ingresada.`nIngresar el número de octetos de la máscara. P.E: 24."; exit }
+
 $Banner = @"
  _    __     __           _                  __                ____             __                        ____  ______________     __  ____   __________  _______ 
 | |  / /__  / /___  _____(_)________ _____  / /_____  _____   / __ \___  ____  / /___  __  __            / __ \/ ____/  _/ __ \   /  |/  / | / / ____/  |/  / __ \
@@ -132,9 +146,4 @@ $Banner = @"
 Write-Host ""
 Write-Host "$Banner"
 Verificar-Requisitos
-if (($DirectorioTrabajo -and $IP -and $Mascara -and $Gateway -and $DNS) -ne $null) {
-    #Write-Host "DT: $DirectorioTrabajo`nIP: $IP`nMASK: $Mascara`nGW: $Gateway`nDNS: $DNS`n"
-    Generar-ArchivosConfiguracion -DirectorioTrabajo $DirectorioTrabajo -IP $IP -Mascara $Mascara -Gateway $Gateway -DNS $DNS 
-} else {
-    Write-Host "[-] ERROR: Ingrese valores para IP, Mascara, Gateway y DNS."; exit
-}
+Generar-ArchivosConfiguracion -DirectorioTrabajo $DirectorioTrabajo -IP $IP
