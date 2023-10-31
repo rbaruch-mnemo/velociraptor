@@ -1,16 +1,18 @@
-# Requisitos xd
 # Velociraptor - Creador de archivos de despliegue
-Herramienta  que permite crear de manera desatendida los archivos necesarios para levantar un laboratorio de Velociraptor:
-- **Servidor**: Archivos .sh y .deb para configuración de red e instalación de paquetes dentro del servidor 
+Herramienta que permite crear de manera desatendida los archivos necesarios para levantar un laboratorio de Velociraptor:
+- **Servidor**: Archivo *.deb* de instalación del servicio de Velociraptor.
+> Nota: El servidor está considerado para que sea Linux; Debian o Ubuntu.
+>> Puertos por defecto:
+>>> 8000 para clientes, 8001 para API y 8889 para GUI.
 - **Clientes**
-	- **Windows**: Archivo MSI que instala el servicio de Velociraptor
-	- **Linux**: Archivos .deb y .rpm que instala el servicio de Velociraptor
+	- **Windows**: Archivo MSI.
+	- **Linux**: Archivos *.deb* y *.rpm*.
+> Los clientes apuntan a la dirección del servidor que sea ingresada.
 
 ## Requisitos
 - **.NET 3.5+**.
-- **Wix Tool Set**.
 - **WSL** (cualquier distribución) con el paquete **dos2unix** instalado.
-> Estos requisitos, son instalados por la herramienta si no se encuentran presentes dentro del equipo.
+> Estos requisitos son validados por la herramienta; si no se encuentran presentes dentro del equipo, se puede instalar desde la misma pero se recomienda contar con ellos previamente.
 
 ## Uso 
 ### Descarga de la herramienta
@@ -19,16 +21,56 @@ Para comenzar a utilizar la herramienta, será necesario clonar el repositorio e
 git clone https://github.com/rbaruch-mnemo/velociraptor
 ``` 
 ### Parámetros obligatorios
-Para el flujo de la herramienta, así como realizar la configuración de red y paquetes dentro del servidor, la herramienta espera los siguientes parámetros:
-- *DirectorioTrabajo*: Ruta donde la herramienta colocará los archivos generados.
-- *IP*: Dirección IP que tendrá el servidor de Velociraptor.
-> Esta dirección, será incluida dentro de la configuración de los servicios para los clientes.
-- *Mascara*: Número de octetos (8,16,24).
-- *Gateway*: Dirección IP del gateway.
-- *DNS*: Direcciones IP de los servidores DNS. 
-### Ejemplos
-Abir una instancia de Powershell como Administrador y colocarse en la raíz del repositorio y ejecutar el siguientes comando
+La herramienta espera los siguientes parámetros:
+- **DirectorioTrabajo**: Ruta donde la herramienta colocará los archivos generados.
+- **IP**: Dirección IP que tendrá el servidor de Velociraptor.
+> Esta dirección IP será donde vivirá el servidor de Velociraptor y será incluida dentro de la configuración de los servicios para los clientes.
+ 
+### Ejemplo
+- **Abir una instancia de Powershell como Administrador**
+- **Colocarse en la raíz del repositorio y ejecutar el siguientes comando**
 ```
-.\Generar-ArchivosDeConfiguracion.ps1 -DirectorioTrabajo "..\SALIDA" -IP "172.20.4.150" -Mascara "24" -Gateway "172.20.4.1" -DNS "8.8.8.8"
+.\Generar-ArchivosDeConfiguracion.ps1 -DirectorioTrabajo "..\SALIDA" -IP "172.20.4.150"
 ``` 
 > Generar archivos para la IP 172.20.4.150, los cuales serán colocados en la carpeta "SALIDA" nivel arriba.
+
+### Manipulación  de los servicios
+#### Servidor
+- Para parar el servicio:
+```
+sudo systemctl stop velociraptor_server.service
+```
+- Para reiniciar para el servicio:
+```
+sudo systemctl restart velociraptor_server.service
+```
+- Para eliminar completamente el servicio:
+```
+sudo systemctl stop velociraptor_server.service && sudo rm -r /opt/velociraptor /etc/velociraptor
+```
+#### Clientes
+**1. Linux**
+- Para parar el servicio:
+```
+sudo systemctl stop velociraptor_client.service
+```
+- Para reiniciar el servicio:
+```
+sudo systemctl restart velociraptor_client.service
+```
+**2. Windows**
+- Para parar el servicio:
+	- Abrir "Servicios"
+	- Encontrar el servicio "Velociraptor"
+	- Click Derecho > Parar
+- Para reiniciar el servicio:
+	- Abrir "Servicios".
+	- Encontrar el servicio "Velociraptor".
+	- Click Derecho > Reiniciar.
+- Para eliminar el servicio:
+	- Abrir un CMD como administrador.
+	- Ejecutar el siguiente comando:
+	```
+	sc delete Velociraptor
+	```
+	-  Eliminar el contenido de las carpetas dentro de la ruta "C:\Program Files\Velociraptor"

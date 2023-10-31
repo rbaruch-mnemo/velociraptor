@@ -79,33 +79,16 @@ function Generar-ArchivosConfiguracion($DirectorioTrabajo, $IP) {
     Start-Sleep -Seconds 15
     Move-Item -Path "velociraptor_server_0.7.0.2_amd64.deb" -Destination "$DirectorioTrabajo\servidor\servidor_velociraptor-v0.7.0-2-linux_$IP_Printeable.deb" -Force | Out-Null
     Set-Location $current
-    # Se crea .sh para config de red  
-    #Write-Host "`t[*] Generando .sh de config para el servidor..."
-    #Set-Location -LiteralPath $current
-    #Copy-Item -Path ".\server_deploy.sh" -Destination "$DirectorioTrabajo\servidor" -Force | Out-Null
-    #(Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{direccion}}', $IP) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
-    #(Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{mascara}}', $Mascara) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
-    #(Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{gateway}}', $Gateway) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
-    #(Get-Content "$DirectorioTrabajo\servidor\server_deploy.sh").replace('{{dns}}', $DNS) | Set-Content "$DirectorioTrabajo\servidor\server_deploy.sh"
-    #Set-Location -LiteralPath "$DirectorioTrabajo\servidor"
-    #bash -c "dos2unix server_deploy.sh" | Out-Null
-    #Set-Location -LiteralPath $current
-    #"dpkg -i velociraptor_v0.6.5_server.deb`nCorroborar el estado del servidor:`n systemctl status velociraptor_server" | Out-File -FilePath "$DirectorioTrabajo\servidor\instrucciones.txt"
+    
     
     ## CLIENTES WINDOWS
     Write-Host "[+] WINDOWS: Generando archivo MSI para los clientes..."
-    #Copy-Item -Path ".\archivosBase\client.config.yaml" -Destination ".\bins\wix_orig\output\client.config.yaml" -Force | Out-Null
     Copy-Item -Path "$current\archivosBase\client.config.yaml" -Destination "$current\bins" -Force | Out-Null
-    
     (Get-Content "$current\bins\client.config.yaml").replace('{{servidor}}', $IP) | Set-Content "$current\bins\client.config.yaml"
     Set-Location "$current\bins"
     bash -c "./velociraptor-v0.7.0-2-linux-amd64 config repack --msi velociraptor-v0.7.0-2-windows-amd64.msi client.config.yaml MNEMO_VelociraptorClient.msi" | Out-Null
-    #Set-Location -LiteralPath ".\bins\wix_orig"
-    #Start-Process -WindowStyle Hidden -Wait -Verb runAs cmd.exe -Args "/c build_custom.bat"
     Start-Sleep -Seconds 10
-    #Set-Location -LiteralPath $current
     Move-Item -Path "MNEMO_VelociraptorClient.msi" -Destination "$DirectorioTrabajo\clientesWindows\MNEMO_VelociraptorClient_$IP_Printeable.msi" -Force
-    #Set-Location $current
     #msiexec /i custom.msi
     
     ## Clientes Linux
@@ -123,7 +106,7 @@ function Generar-ArchivosConfiguracion($DirectorioTrabajo, $IP) {
     Set-Location -LiteralPath $current
    
     
-    Write-Host -ForegroundColor Green "[+] Binarios creados.`nRevisa los archivos creados dentro de $DirectorioTrabajo"
+    Write-Host -BackgroundColor DarkMagenta -ForegroundColor Green "[+] Binarios creados.`nRevisa los archivos creados dentro de $DirectorioTrabajo"
     #dpkg -i client.deb
     #rpm -i client.rpm
 }
